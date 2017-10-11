@@ -1,6 +1,6 @@
 M.mod_webrtcexperiments = {};
 
-M.mod_webrtcexperiments.init_meeting = function(Y, signalingserver, username) {
+M.mod_webrtcexperiments.init_meeting = function(Y, signalingserver, username,iceServers) {
 
     // ......................................................
     // .......................UI Code........................
@@ -67,6 +67,8 @@ M.mod_webrtcexperiments.init_meeting = function(Y, signalingserver, username) {
     // ..................RTCMultiConnection Code.............
     // ......................................................
     var connection = new RTCMultiConnection();
+    // STUN/TURN
+    connection.iceServers = JSON.parse(iceServers);
     // by default, socket.io server is assumed to be deployed on your own URL
     connection.socketURL = signalingserver;
     // comment-out below line if you do not have your own socket.io server

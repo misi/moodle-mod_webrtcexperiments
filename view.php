@@ -96,13 +96,59 @@ if ($webrtc->intro) {
 </section>
 <?php
 
+
+//get iceServers
+$ip=$_SERVER["REMOTE_ADDR"];
+// GOTO https://turn.geant.org and get a key
+$apikey="api_key=PLACEHOLDER_FOR_API_KEY";
+//any desired application data (e.g. abc123)
+$ufrag="moodle";
+$url="https://api.turn.geant.org/stun?$apikey";
+
+if(isset($ufrag)) {
+        $url .= "&ufrag=".$ufrag;
+}
+
+if(isset($ip)) {
+        $url .= "&ip=".$ip;
+}
+
+// create curl resource
+$ch = curl_init();
+
+// set url
+curl_setopt($ch, CURLOPT_URL, $url);
+
+//return the transfer as a string
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+// $output contains the output string
+$output = curl_exec($ch);
+
+//handle curl error
+if($output === false)
+{
+    echo "Curl error: " . curl_error($ch);
+}
+
+// close curl resource to free up system resources
+curl_close($ch);
+
+$response = json_decode($output,true);
+
+$result[] = array("urls" => $response["uris"], "username"=> $response["username"], "credential"=> $response["password"], credentialType => "password");
+$iceServers = json_encode($result);
+
+
+
+
 $PAGE->requires->js(new moodle_url("https://cdn.webrtc-experiment.com:443/RTCMultiConnection.js"));
 $PAGE->requires->js(new moodle_url("https://cdn.webrtc-experiment.com:443/rmc3.fbr.min.js"));
 $PAGE->requires->js(new moodle_url("https://cdn.webrtc-experiment.com:443/getMediaElement.js"));
 $PAGE->requires->js(new moodle_url("https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"));
 $PAGE->requires->js(new moodle_url("https://cdn.webrtc-experiment.com/getMediaElement.js"));
 
-$PAGE->requires->js_init_call('M.mod_webrtcexperiments.init_meeting', array($webrtc->signalingserver, fullname($USER)));
+$PAGE->requires->js_init_call('M.mod_webrtcexperiments.init_meeting', array($webrtc->signalingserver, fullname($USER),$iceServers));
 
 // Finish the page.
 echo $OUTPUT->footer();
